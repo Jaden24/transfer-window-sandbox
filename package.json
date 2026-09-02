@@ -1,0 +1,27 @@
+{
+  "name": "transfer-window-sandbox",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A WebMCP transfer-window sandbox where the page enforces Premier League PSR and squad-registration rules, and refuses any deal that breaks them.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.23.13",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}
