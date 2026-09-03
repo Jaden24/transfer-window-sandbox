@@ -181,11 +181,21 @@ always call `POST /submit`. Here there is no server, so there is nothing to call
 
 14 tools, three tiers, one gate — [`src/webmcp/tools.ts`](src/webmcp/tools.ts).
 
-| Tier | Tools |
-|---|---|
-| **Read-only** | `get_club_state` · `list_squad` · `search_players` · `get_player` · `compute_psr_position` · `check_squad_compliance` · `evaluate_transfer` · `rank_sale_candidates` |
-| **Reversible** | `propose_signing` · `propose_sale` · `remove_from_plan` · `get_plan` · `clear_plan` |
-| **Consequential** | `submit_window` |
+| Tier | Tools | Annotations |
+|---|---|---|
+| **Read-only** | `get_club_state` · `list_squad` · `search_players` · `get_player` · `compute_psr_position` · `check_squad_compliance` · `evaluate_transfer` · `rank_sale_candidates` · `get_plan` | `readOnlyHint` `idempotentHint` |
+| **Reversible** | `propose_signing` · `propose_sale` · `remove_from_plan` · `clear_plan` | — (`clear_plan` also `destructiveHint`) |
+| **Consequential** | `submit_window` | `destructiveHint` |
+
+Every tool carries standard MCP behaviour hints, and they are **derived from the tier**
+rather than hand-written per tool — so the annotation an agent reads can never drift
+from the tier the UI displays. Nothing here returns user-generated or externally fetched
+content, so no tool sets `untrustedContentHint`; every figure comes from the page's own
+data and its own rules engine.
+
+`submit_window` also honours the `AbortSignal` passed to `execute`. If the agent's call
+is cancelled while the page is waiting for a human, the confirmation is withdrawn rather
+than left stale on screen.
 
 **`rank_sale_candidates`** is the one to look at. It ranks the squad by the real PSR
 swing from selling each player, and the answer is regularly counterintuitive — an

@@ -140,7 +140,7 @@ export function newMoveId(): string {
 
 // --- the human gate --------------------------------------------------------
 
-export type SubmissionOutcome = 'confirmed' | 'declined' | 'timed_out';
+export type SubmissionOutcome = 'confirmed' | 'declined' | 'timed_out' | 'aborted';
 
 /** Resolver for an agent currently suspended inside `submit_window`. */
 let pendingGate: ((outcome: SubmissionOutcome) => void) | null = null;
@@ -170,7 +170,7 @@ export function requestSubmission() {
  * pattern: the tool pauses execution and waits for user interaction before
  * completing a consequential action.
  */
-export function requestSubmissionAndWait(): Promise<SubmissionOutcome> {
+export function requestSubmissionAndWait(signal?: AbortSignal): Promise<SubmissionOutcome> {
   settleGate('declined'); // supersede any earlier pending request
   set({ awaitingConfirmation: true });
   return new Promise<SubmissionOutcome>((resolve) => {
@@ -180,6 +180,15 @@ export function requestSubmissionAndWait(): Promise<SubmissionOutcome> {
       log('human', 'left the confirmation unanswered — the request expired');
       settleGate('timed_out');
     }, GATE_TIMEOUT_MS);
+
+    // If the agent's call is cancelled while we are waiting, drop the
+    // confirmation rather than leaving a stale prompt on the page.
+    signal?.addEventListener('abort', () => {
+      if (!pendingGate) return;
+      set({ awaitingConfirmation: false });
+      log('agent', 'cancelled the submission request');
+      settleGate('aborted');
+    }, { once: true });
   });
 }
 

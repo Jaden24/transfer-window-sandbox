@@ -25,11 +25,27 @@ export interface ToolResult {
   isError?: boolean;
 }
 
+/**
+ * Standard MCP behaviour hints. These are advisory — a client may use them to
+ * decide whether to ask the user before calling — so we set them honestly and
+ * still enforce everything in the tool bodies. Chrome's guidance calls out
+ * `readOnlyHint` specifically for tools that don't change state.
+ */
+export interface ToolAnnotations {
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  idempotentHint?: boolean;
+  openWorldHint?: boolean;
+  /** Set when a result carries user-generated or externally sourced content. */
+  untrustedContentHint?: boolean;
+}
+
 export interface WebMcpTool {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
-  execute: (args: any) => Promise<ToolResult> | ToolResult;
+  annotations?: ToolAnnotations;
+  execute: (args: any, ctx?: { signal?: AbortSignal }) => Promise<ToolResult> | ToolResult;
 }
 
 type ModelContextLike = {
@@ -66,9 +82,9 @@ export function isWebMcpAvailable(): boolean {
 function guard(tool: WebMcpTool): WebMcpTool {
   return {
     ...tool,
-    execute: async (args: unknown) => {
+    execute: async (args: unknown, ctx?: { signal?: AbortSignal }) => {
       try {
-        return await tool.execute(args);
+        return await tool.execute(args, ctx);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         return {

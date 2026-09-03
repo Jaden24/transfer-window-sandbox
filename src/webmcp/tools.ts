@@ -545,7 +545,7 @@ const submitWindow: WebMcpTool = {
     'expect to wait. It resolves only when the manager confirms or declines. You ' +
     'can never complete this action on the manager’s behalf.',
   inputSchema: { type: 'object', properties: {} },
-  execute: async () => {
+  execute: async (_args: unknown, ctx?: { signal?: AbortSignal }) => {
     const report = store.compliance();
     if (!report.legal) {
       const hard = report.violations.filter((v) => v.severity === 'hard');
@@ -561,7 +561,7 @@ const submitWindow: WebMcpTool = {
 
     // Suspend here. The agent stays inside this tool call, blocked, until a
     // human presses a button in the page. Nothing it can do will resolve this.
-    const outcome = await store.requestSubmissionAndWait();
+    const outcome = await store.requestSubmissionAndWait(ctx?.signal);
 
     if (outcome === 'confirmed') {
       return ok({
@@ -570,6 +570,10 @@ const submitWindow: WebMcpTool = {
         message: 'The manager pressed "Confirm & submit". The window is registered.',
         ...complianceSummary(store.compliance()),
       });
+    }
+
+    if (outcome === 'aborted') {
+      return refuse('The submission request was cancelled before the manager answered.');
     }
 
     if (outcome === 'timed_out') {
@@ -586,7 +590,7 @@ const submitWindow: WebMcpTool = {
 
 // ---------------------------------------------------------------------------
 
-export const TOOLS: WebMcpTool[] = [
+const RAW_TOOLS: WebMcpTool[] = [
   // read-only
   getClubState,
   listSquad,
@@ -596,15 +600,30 @@ export const TOOLS: WebMcpTool[] = [
   checkSquadCompliance,
   evaluateTransfer,
   rankSaleCandidates,
+  getPlan,
   // reversible
   proposeSigning,
   proposeSale,
   removeFromPlan,
-  getPlan,
   clearPlan,
   // consequential
   submitWindow,
 ];
+
+/**
+ * Behaviour hints per tier. Derived from the tier rather than hand-written per
+ * tool, so the annotation an agent reads can never drift from the tier the UI
+ * displays.
+ */
+const TIER_ANNOTATIONS = {
+  read: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  reversible: {
+    readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false,
+  },
+  gated: {
+    readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false,
+  },
+} as const;
 
 export const TOOL_TIERS: Record<string, 'read' | 'reversible' | 'gated'> = {
   get_club_state: 'read',
@@ -615,10 +634,27 @@ export const TOOL_TIERS: Record<string, 'read' | 'reversible' | 'gated'> = {
   check_squad_compliance: 'read',
   evaluate_transfer: 'read',
   rank_sale_candidates: 'read',
+  get_plan: 'read',
   propose_signing: 'reversible',
   propose_sale: 'reversible',
   remove_from_plan: 'reversible',
-  get_plan: 'reversible',
   clear_plan: 'reversible',
   submit_window: 'gated',
 };
+
+/**
+ * `clear_plan` discards work rather than adding to it, so it is flagged
+ * destructive even though it sits in the reversible tier — a client may
+ * reasonably want to confirm it.
+ *
+ * No tool here returns user-generated or externally fetched content, so none
+ * carries `untrustedContentHint`. Everything comes from the page's own data and
+ * its own rules engine.
+ */
+export const TOOLS: WebMcpTool[] = RAW_TOOLS.map((tool) => ({
+  ...tool,
+  annotations: {
+    ...TIER_ANNOTATIONS[TOOL_TIERS[tool.name] ?? 'read'],
+    ...(tool.name === 'clear_plan' ? { destructiveHint: true } : {}),
+  },
+}));
