@@ -125,6 +125,31 @@ and comply. **The page refuses**, and hands back the arithmetic:
 
 ---
 
+## Who this is actually for
+
+Not Premier League CFOs — they have finance teams and bespoke models. The people who
+do this arithmetic without those resources:
+
+- **Football finance analysts and journalists.** PSR compliance is now a permanent beat.
+  Analysts publish three-year headroom estimates every window, and the working is done
+  by hand in spreadsheets.
+- **Smaller clubs and intermediaries.** Championship and League One sides face the same
+  rules on smaller thresholds, without a CFO to model them.
+- **The enormous audience that argues about this in public and gets it wrong.** The
+  single most common mistake — treating a £110m fee as a £110m cost — is the exact
+  error this page refuses to let an agent repeat.
+
+And the transferable audience: **anyone putting an agent in front of a rulebook.** The
+failure mode demonstrated here — a model confidently asserting arithmetic it cannot
+actually do, in a domain where being wrong carries a real penalty — is not specific to
+football. It is the default behaviour of every agent given a calculator-shaped problem
+and no calculator.
+
+What this project demonstrates is the fix: **give the page the calculator, and make the
+agent ask.**
+
+---
+
 ## The idea
 
 Most agent demos put the model in charge and hope it behaves.
