@@ -181,6 +181,25 @@ you the refusal.
 
 ---
 
+## Future work
+
+Two directions this obviously wants to go, neither built here:
+
+**Roles as tool tiers.** The human gate currently means *any* human. In a real club it
+would mean a specific one. The three tiers map straight onto job titles — a scout gets
+the read-only tools, an analyst can build a plan, and only a sporting director's click
+can resolve `submit_window`. Authentication would not be bolted on beside the tool
+surface; it would be the same taxonomy, enforced per user.
+
+**A market that moves.** Valuations shift daily, news breaks, and there is a hard
+accounting deadline. Live pricing would make this more realistic — and, more
+interestingly, it sharpens the argument rather than complicating it: an agent that
+*remembers* a valuation is already wrong, and asking the page at the moment of acting
+is the only way to be right. Staleness is a reason tools beat memory, not a reason to
+distrust them.
+
+---
+
 ## Data and honesty
 
 Club and player names are real, because the constraints only mean something if you
