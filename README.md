@@ -6,16 +6,55 @@ Built for [The WebMCP Challenge](https://webmcp.devpost.com/).
 
 **▶ Live demo: https://transfer-window-sandbox.vercel.app/**
 
-Open it in Chrome with `chrome://flags/#enable-webmcp-testing` enabled to attach an
-agent, or use the built-in manual tool runner to exercise all 14 tools without one.
+---
 
-You manage a Premier League club through a transfer window, with an agent working
-alongside you. It searches the market, models deals, explains trade-offs, and edits
-the plan. What it cannot do is state a number it did not get from the page, spend
-money the club does not have, register an illegal squad, or submit the window.
+## The problem, for people who don't follow football
 
-Ask it to sign a £110m striker with £20m of headroom and it does not apologise and
-comply. The page refuses, and hands back the exact arithmetic:
+English football clubs are not allowed to lose money freely. Under the Premier League's
+**Profitability and Sustainability Rules**, a club may lose at most **£105m across three
+seasons**. Break it and you don't get a fine — you lose league points.
+
+This is not hypothetical:
+
+- **Everton** were docked **10 points** (reduced to 6 on appeal) for exceeding the limit
+  by £16.6m, then [docked 2 more the same season for a second breach](https://www.skysports.com/football/news/11671/13107642/everton-deducted-two-points-for-breaching-premier-league-profitability-and-sustainability-rules-for-second-time).
+- **Nottingham Forest** lost [**4 points** for going £34.5m over their threshold](https://www.espn.com/soccer/story/_/id/39758929/nottingham-forest-deducted-four-points-financial-rules-breach).
+
+Points decide relegation, and relegation is estimated to cost a club around
+[**£100m**](https://sports.yahoo.com/articles/much-does-relegation-cost-premier-170002060.html).
+So the arithmetic behind a transfer is worth roughly as much as the transfer.
+
+### And the arithmetic is genuinely counterintuitive
+
+**A transfer fee is not a cost when you pay it.** It is spread evenly across the
+contract — capped at five years since the Premier League
+[voted the limit in](https://www.espn.com/soccer/story/_/id/39096988/premier-league-clubs-vote-five-year-player-contract-limit)
+to stop clubs signing players to eight-year deals to shrink the annual charge.
+
+> A £110m signing on a five-year contract is a **£22m** cost this season, not £110m.
+
+**A sale, by contrast, books its profit immediately** — the fee minus whatever the
+player is still worth on the books. A player who came through your own academy has a
+book value of **zero**, so their entire fee is pure profit. This is why clubs sell their
+own young players every June.
+
+### The scale
+
+Premier League clubs spent a record [**£3.48bn** in the 2026 summer window](https://cryptobriefing.com/premier-league-2026-summer-transfer-window-records/),
+recouping £2.17bn in sales. All of it under a £105m loss ceiling, all of it racing a
+**30 June accounting deadline** that [Sky Sports calls football's unofficial transfer
+deadline day](https://www.skysports.com/football/news/11095/13144913/june-30-the-unofficial-transfer-deadline-day-worrying-premier-league-clubs-over-profit-and-sustainability-rules) —
+and increasingly settled by **chief financial officers** rather than scouts, through
+two-way "mirror" deals engineered to book profit now and spread cost later.
+
+That is the job this sandbox hands to an AI agent.
+
+---
+
+## What happens when you try
+
+Ask the agent to sign a £110m striker with £20.3m of headroom. It does not apologise
+and comply. **The page refuses**, and hands back the arithmetic:
 
 ```json
 {
@@ -24,11 +63,10 @@ comply. The page refuses, and hands back the exact arithmetic:
   "detail": {
     "violations": [{
       "code": "PSR_BREACH",
-      "message": "PSR breach. Three-year aggregate is -£117m against a -£105m limit — over by £12.1m.",
-      "over_by": 12100000
+      "message": "PSR breach. Three-year aggregate is -£117m against a -£105m limit — over by £12.1m."
     }],
-    "annual_amortisation": { "gbp": 22000000, "display": "£22.0m" },
-    "annual_wage": { "gbp": 10400000, "display": "£10.4m" },
+    "annual_amortisation": { "display": "£22.0m" },
+    "annual_wage": { "display": "£10.4m" },
     "hint": "Free up room first — call rank_sale_candidates to see which sale helps most."
   }
 }
@@ -38,75 +76,46 @@ comply. The page refuses, and hands back the exact arithmetic:
 
 ## The idea
 
-Most agent demos put the model in charge and hope it behaves. This one inverts that.
+Most agent demos put the model in charge and hope it behaves.
 
-**The page owns the rulebook. The agent is only allowed to operate it.**
+**Here the page owns the rulebook, and the agent is only allowed to operate it.**
 
-Football finance is an unusually good place to prove the point, because the rules are
-real, public, arithmetic-heavy, and genuinely counterintuitive:
+Every rule above lives in [`src/engine/rules.ts`](src/engine/rules.ts) as pure functions
+with a test suite. The tools are thin wrappers over it. The model never does the
+arithmetic — so the model cannot bluff, and cannot talk its way past a limit.
 
-- **PSR.** A club may lose at most **£105m across a rolling three-season window.**
-- **Amortisation.** A transfer fee is capitalised and spread evenly across the
-  contract, capped at five years. A £100m signing is a **£20m annual charge**, not a
-  £100m one. Almost everybody — including language models — gets this wrong.
-- **Profit on sale.** Selling books the profit *immediately*: fee minus the
-  unamortised residual. An academy graduate carries a book value of zero, so their
-  entire fee is pure profit. This is why clubs sell their own kids in June.
-- **Squad registration.** 25 senior players, of whom at most 17 may be non-homegrown.
-  Under-21s are exempt.
+## Why this needs WebMCP, not a normal MCP server
 
-Every one of those is implemented in [`src/engine/rules.ts`](src/engine/rules.ts) and
-covered by tests. The tools are thin wrappers over it. The model never does the
-arithmetic, so the model cannot bluff.
+**The page is the referee, in the same process as the UI.** A tool call and a button
+click run the identical mutation in [`src/engine/store.ts`](src/engine/store.ts). The
+agent has no privileged back door, and you watch the board change under its hands.
 
----
+**Refusal is a first-class result.** `propose_signing` returns `isError` with the
+violated rule, the amounts, and a next step. The agent is not asked to be well-behaved;
+it is structurally unable to proceed.
 
-## Why WebMCP specifically
-
-This is not an MCP server that happens to render HTML. Three things make it belong
-in the page:
-
-**1. The page is the referee, in the same process as the UI.** A tool call and a
-button click go through the identical mutation in
-[`src/engine/store.ts`](src/engine/store.ts). The agent cannot reach a privileged
-back door the human does not have, and the human watches the board change under the
-agent's hands. There is one source of truth and both parties are bound by it.
-
-**2. Refusal is a first-class result.** `propose_signing` returns `isError` with the
-violated rule, the amounts, and a concrete next step. The agent is not asked to be
-well-behaved; it is structurally unable to proceed. That is a property of putting the
-guard where the state lives.
-
-**3. The consequential action has no agent-reachable path.** `submit_window` is the
-only tool that touches anything final, and it does not return when called — it raises
-a confirmation in the UI and then **suspends**. The agent sits blocked inside the tool
-call until a human presses a button; the promise resolves only on confirm, decline, or
-a five-minute timeout, and reports which. This is Chrome's documented human-in-the-loop
-pattern: a tool pauses execution and waits for user interaction before completing a
-consequential action. An agent operating over a REST API could always call
-`POST /submit`; here there is nothing to call, and waiting is the only option.
+**The final action has no agent-reachable path.** `submit_window` does not return when
+called — it raises a confirmation and **suspends**. The agent sits blocked inside the
+tool call until a human presses a button. An agent working against a REST API could
+always call `POST /submit`. Here there is no server, so there is nothing to call.
 
 ---
 
-## The tool surface
+## The tools
 
-14 tools, three tiers, one gate — see [`src/webmcp/tools.ts`](src/webmcp/tools.ts).
+14 tools, three tiers, one gate — [`src/webmcp/tools.ts`](src/webmcp/tools.ts).
 
 | Tier | Tools |
 |---|---|
-| **Read-only** — free to call | `get_club_state` · `list_squad` · `search_players` · `get_player` · `compute_psr_position` · `check_squad_compliance` · `evaluate_transfer` · `rank_sale_candidates` |
-| **Reversible** — edits the plan, always undoable | `propose_signing` · `propose_sale` · `remove_from_plan` · `get_plan` · `clear_plan` |
-| **Consequential** — human hand required | `submit_window` |
+| **Read-only** | `get_club_state` · `list_squad` · `search_players` · `get_player` · `compute_psr_position` · `check_squad_compliance` · `evaluate_transfer` · `rank_sale_candidates` |
+| **Reversible** | `propose_signing` · `propose_sale` · `remove_from_plan` · `get_plan` · `clear_plan` |
+| **Consequential** | `submit_window` |
 
-Two worth calling out:
-
-**`evaluate_transfer`** models a deal without committing it, so the agent can tell you
-what something costs before you agree to it.
-
-**`rank_sale_candidates`** ranks the whole squad by the actual PSR swing from selling
-each player. The answer is regularly counterintuitive — a recent expensive signing can
-help more than an academy graduate, because you shed their amortisation and wages as
-well as booking the fee. No agent can reason its way to that ranking; it has to ask.
+**`rank_sale_candidates`** is the one to look at. It ranks the squad by the real PSR
+swing from selling each player, and the answer is regularly counterintuitive — an
+expensive recent signing can help more than an academy graduate, because you shed their
+amortisation and wages as well as booking the fee. No agent can reason its way there.
+It has to ask.
 
 ---
 
@@ -116,87 +125,63 @@ well as booking the fee. No agent can reason its way to that ranking; it has to 
 npm install
 npm run dev      # http://localhost:5173
 npm test         # rules engine tests
-npm run build
 ```
 
-**With an agent:** open the deployed URL in a WebMCP-enabled browser (Chrome with the
-[WebMCP origin trial](https://developer.chrome.com/blog/ai-webmcp-origin-trial), or the
-ChatGPT browser). The header badge turns green and reports how many tools registered.
+**With an agent:** open the live URL in the ChatGPT desktop app's built-in browser,
+which discovers WebMCP site tools natively, and just talk to it.
 
-**Without one:** the app is fully usable by hand, and every tool can be invoked
-manually from the **WebMCP tools** panel — the same code path an agent hits. Reviewers
-without the origin trial enabled can still exercise the whole surface.
+**In Chrome:** enable `chrome://flags/#enable-webmcp-testing`, then
+DevTools → Application → WebMCP lists all 14 tools and lets you call them.
 
-The API is still moving: the W3C proposal exposes `navigator.modelContext` while the
-Chrome guides show `document.modelContext`, and registration is either `registerTool`
-or a bulk `provideContext`. [`src/webmcp/adapter.ts`](src/webmcp/adapter.ts) detects
-whichever is present, so there is one file to change when the spec settles.
-
----
+**With no agent at all:** the app is fully usable by hand, and the **WebMCP tools**
+panel invokes every tool through the same code path.
 
 ## Deploying
 
-Static output, so any host works. Configs for two are committed:
+Static output — no backend, no auth, no keys.
 
 ```bash
-npm run build            # -> dist/
-netlify deploy --prod    # netlify.toml
-vercel --prod            # vercel.json
+npm run build && vercel --prod
 ```
 
-**Then enable WebMCP for your visitors.** Without an origin trial token,
-`navigator.modelContext` only exists for people who have manually turned on
-`chrome://flags/#enable-webmcp-testing` — which no reviewer is going to do. Register
-the deployed origin at [developer.chrome.com/origintrials](https://developer.chrome.com/origintrials),
-then paste the token into the commented `<meta http-equiv="origin-trial">` tag in
-[`index.html`](index.html) and redeploy. The header badge turns green when it works.
-
-Tokens are origin-specific — one issued for a Netlify URL will not work on Vercel, or
-on localhost. For local development, use the flag.
+To enable WebMCP for visitors who haven't set a Chrome flag, register the deployed
+origin at [developer.chrome.com/origintrials](https://developer.chrome.com/origintrials)
+and paste the token into the commented `<meta>` tag in [`index.html`](index.html).
 
 ---
 
 ## Against the judging criteria
 
-**WebMCP leverage.** 14 tools in a deliberate three-tier taxonomy, with refusal as a
-designed result rather than an error path. Tools return structured JSON with both raw
-numbers and display strings, per Chrome's tool-design guidance. The human-in-the-loop
-gate is implemented the way Chrome documents it: the tool suspends and waits for a UI
-confirmation it cannot itself provide.
+**WebMCP leverage.** 14 tools in a deliberate three-tier taxonomy, refusal as a designed
+result rather than an error path, structured JSON responses per Chrome's tool-design
+guidance, and a human gate that genuinely suspends the tool call — the documented
+pattern, not an approximation.
 
-**Execution.** No backend, no auth, no API keys — it deploys as static files. The rules
-engine is pure functions with a test suite. TypeScript throughout, strict mode.
-Degrades to a fully usable manual app when no agent is attached.
+**Execution.** No backend, no auth, no API keys. Pure-function rules engine with tests,
+strict TypeScript, and full usability when no agent is attached.
 
 **Potential impact.** The football framing is the hook; the argument generalises. Any
 domain with a real rulebook — tax, benefits eligibility, medical billing, export
-control, clinical protocols — has the same shape, and the same problem: an agent that
-sounds authoritative about arithmetic it cannot actually do. Putting the rulebook in
-the page and forcing the agent through it is a reusable answer.
+control — has the same problem: an agent that sounds authoritative about arithmetic it
+cannot actually do. Putting the rulebook in the page and forcing the agent through it
+is a reusable answer.
 
-**Creativity & ambition.** Sport is absent from the WebMCP ecosystem. And the design
-takes the harder position: rather than adding guardrails on top of a capable agent,
-it removes the agent's ability to be wrong about the things that matter, and shows
-you the refusal.
+**Creativity & ambition.** Sport is absent from the WebMCP ecosystem. And rather than
+bolting guardrails onto a capable agent, this removes the agent's ability to be wrong
+about the things that matter — and shows you the refusal.
 
 ---
 
 ## Future work
 
-Two directions this obviously wants to go, neither built here:
+**Roles as tool tiers.** The gate currently means *any* human. In a real club it would
+mean a specific one — a scout gets read-only tools, an analyst can build a plan, and
+only a sporting director's click resolves `submit_window`. Auth wouldn't sit beside the
+tool surface; it would be the same taxonomy, per user.
 
-**Roles as tool tiers.** The human gate currently means *any* human. In a real club it
-would mean a specific one. The three tiers map straight onto job titles — a scout gets
-the read-only tools, an analyst can build a plan, and only a sporting director's click
-can resolve `submit_window`. Authentication would not be bolted on beside the tool
-surface; it would be the same taxonomy, enforced per user.
-
-**A market that moves.** Valuations shift daily, news breaks, and there is a hard
-accounting deadline. Live pricing would make this more realistic — and, more
-interestingly, it sharpens the argument rather than complicating it: an agent that
-*remembers* a valuation is already wrong, and asking the page at the moment of acting
-is the only way to be right. Staleness is a reason tools beat memory, not a reason to
-distrust them.
+**A market that moves.** Valuations shift daily and news breaks. Live pricing would
+sharpen the argument rather than complicate it: an agent that *remembers* a valuation is
+already wrong, and asking the page at the moment of acting is the only way to be right.
 
 ---
 
@@ -207,7 +192,7 @@ recognise them. **Every financial figure is invented** — fees, wages, contract
 revenues, prior-season losses — and tuned so each club sits in a distinct, legible PSR
 position. They are not club accounts and should not be cited as such.
 
-The **rules** are real and public. That is the part worth learning, and the part the
+**The rules are real and public.** That is the part worth learning, and the part the
 page actually enforces.
 
 Nothing here is financial advice, and no transfer is real.
