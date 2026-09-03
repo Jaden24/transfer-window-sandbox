@@ -1,9 +1,9 @@
 {
-  "name": "transfer-window-sandbox",
+  "name": "headroom",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "A WebMCP transfer-window sandbox where the page enforces Premier League PSR and squad-registration rules, and refuses any deal that breaks them.",
+  "description": "Headroom — a WebMCP transfer-window sandbox where the page enforces Premier League PSR and squad-registration rules, and refuses any deal that breaks them.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

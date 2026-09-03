@@ -1,6 +1,8 @@
-# Transfer Window Sandbox
+# Headroom
 
 **An AI agent runs your football transfer window. The page refuses every deal that breaks the rules.**
+
+*Headroom: the money a club has left before it breaches the limit — and the thing this app is built around.*
 
 Built for [The WebMCP Challenge](https://webmcp.devpost.com/).
 

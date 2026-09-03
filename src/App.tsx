@@ -44,7 +44,7 @@ export default function App() {
     <div className="app">
       <header className="top">
         <div>
-          <div className="brand">Transfer Window <span>Sandbox</span></div>
+          <div className="brand">Head<span>room</span></div>
           <div className="tagline">
             The agent runs your window. The page enforces the rules.
           </div>
