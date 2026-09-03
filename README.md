@@ -4,6 +4,11 @@
 
 Built for [The WebMCP Challenge](https://webmcp.devpost.com/).
 
+**▶ Live demo: https://transfer-window-sandbox.vercel.app/**
+
+Open it in Chrome with `chrome://flags/#enable-webmcp-testing` enabled to attach an
+agent, or use the built-in manual tool runner to exercise all 14 tools without one.
+
 You manage a Premier League club through a transfer window, with an agent working
 alongside you. It searches the market, models deals, explains trade-offs, and edits
 the plan. What it cannot do is state a number it did not get from the page, spend

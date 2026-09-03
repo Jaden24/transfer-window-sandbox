@@ -19,14 +19,15 @@
 
       To fill it in:
         1. Deploy, and note the exact origin (scheme + host + port), e.g.
-           https://transfer-window-sandbox.netlify.app
+           https://transfer-window-sandbox.vercel.app
         2. Register that origin for the WebMCP trial at
            https://developer.chrome.com/origintrials
         3. Paste the token into the content attribute below and uncomment.
         4. Redeploy. The header badge should turn green on the live URL.
 
-      The token is origin-specific: a token for the Netlify URL will not work on
-      a Vercel one, or on localhost. Locally, use the flag instead.
+      The token is origin-specific and must match the *production* origin
+      (https://transfer-window-sandbox.vercel.app), not a per-deployment preview
+      URL. It does not cover localhost — use the flag there.
     -->
     <!-- <meta http-equiv="origin-trial" content="PASTE_ORIGIN_TRIAL_TOKEN_HERE" /> -->
   </head>
