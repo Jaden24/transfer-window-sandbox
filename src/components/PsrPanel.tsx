@@ -1,18 +1,21 @@
-import { PSR_LIMIT, fmtMoney } from '../engine/rules';
+import { PSR_LIMIT } from '../engine/rules';
+import { useMoney } from '../engine/money';
 import type { ComplianceReport } from '../engine/types';
 
 function Row({ k, v, tone, total }: {
   k: string; v: number; tone?: 'neg' | 'pos'; total?: boolean;
 }) {
+  const money = useMoney();
   return (
     <div className={`row${total ? ' total' : ''}`}>
       <span className="k">{k}</span>
-      <span className={`v ${tone ?? (v < 0 ? 'neg' : '')}`}>{fmtMoney(v)}</span>
+      <span className={`v ${tone ?? (v < 0 ? 'neg' : '')}`}>{money.fmt(v)}</span>
     </div>
   );
 }
 
 export default function PsrPanel({ report }: { report: ComplianceReport }) {
+  const money = useMoney();
   const { psr, squad } = report;
   const cs = psr.currentSeason;
 
@@ -25,7 +28,7 @@ export default function PsrPanel({ report }: { report: ComplianceReport }) {
       <div className="panel">
         <h2>PSR headroom</h2>
         <div className={`headroom-value ${psr.breach ? 'bad' : 'ok'}`}>
-          {psr.breach ? `−${fmtMoney(psr.breachAmount).replace('£', '£')}` : fmtMoney(psr.headroom)}
+          {psr.breach ? `−${money.fmt(psr.breachAmount)}` : money.fmt(psr.headroom)}
         </div>
         <div className="headroom-label">
           {psr.breach
@@ -40,8 +43,8 @@ export default function PsrPanel({ report }: { report: ComplianceReport }) {
           />
         </div>
         <div className="gauge-ends">
-          <span>aggregate {fmtMoney(psr.aggregate)}</span>
-          <span>limit {fmtMoney(psr.limit)}</span>
+          <span>aggregate {money.fmt(psr.aggregate)}</span>
+          <span>limit {money.fmt(psr.limit)}</span>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { playerById } from '../data/players';
-import { fmtMoney } from '../engine/rules';
+import { useMoney } from '../engine/money';
 import * as store from '../engine/store';
 import type { AppState } from '../engine/store';
 import type { ComplianceReport } from '../engine/types';
@@ -7,6 +7,7 @@ import type { ComplianceReport } from '../engine/types';
 export default function PlanPanel({
   state, report,
 }: { state: AppState; report: ComplianceReport }) {
+  const money = useMoney();
   const feesOut = state.plan
     .filter((m) => m.kind === 'signing')
     .reduce((n, m) => n + m.fee, 0);
@@ -46,7 +47,7 @@ export default function PlanPanel({
       <div className={`legal-banner ${report.legal ? 'ok' : 'bad'}`}>
         {report.legal ? '✓ Plan is compliant' : '✕ Plan breaks the rules'}
         <span style={{ marginLeft: 'auto', fontWeight: 400, fontSize: 12 }}>
-          net {fmtMoney(feesOut - feesIn)}
+          net {money.fmt(feesOut - feesIn)}
         </span>
       </div>
 
@@ -56,7 +57,7 @@ export default function PlanPanel({
           {hard.map((v, i) => (
             <div className="violation hard" key={i}>
               <span className="code">{v.code.replace(/_/g, ' ')}</span>
-              {v.message}
+              {money.text(v.message)}
             </div>
           ))}
         </div>
@@ -68,7 +69,7 @@ export default function PlanPanel({
           {advisory.map((v, i) => (
             <div className="violation advisory" key={i}>
               <span className="code">{v.code.replace(/_/g, ' ')}</span>
-              {v.message}
+              {money.text(v.message)}
             </div>
           ))}
         </div>
@@ -97,11 +98,11 @@ export default function PlanPanel({
                 {p?.name ?? m.playerId}
                 {m.kind === 'signing' && (
                   <div className="meta" style={{ color: 'var(--faint)', fontSize: 11 }}>
-                    {m.contractYears}-year deal · {fmtMoney(m.weeklyWage ?? 0)}/wk
+                    {m.contractYears}-year deal · {money.fmt(m.weeklyWage ?? 0)}/wk
                   </div>
                 )}
               </span>
-              <span className="fee">{fmtMoney(m.fee)}</span>
+              <span className="fee">{money.fmt(m.fee)}</span>
               <button onClick={() => store.removeMove(m.id, 'human')}>undo</button>
             </div>
           );
@@ -111,15 +112,15 @@ export default function PlanPanel({
           <>
             <div className="row" style={{ marginTop: 9 }}>
               <span className="k">Fees out</span>
-              <span className="v neg">{fmtMoney(feesOut)}</span>
+              <span className="v neg">{money.fmt(feesOut)}</span>
             </div>
             <div className="row">
               <span className="k">Fees in</span>
-              <span className="v pos">{fmtMoney(feesIn)}</span>
+              <span className="v pos">{money.fmt(feesIn)}</span>
             </div>
             <div className="row total">
               <span className="k">Net spend</span>
-              <span className="v">{fmtMoney(feesOut - feesIn)}</span>
+              <span className="v">{money.fmt(feesOut - feesIn)}</span>
             </div>
 
             <div style={{ display: 'flex', gap: 7, marginTop: 11 }}>

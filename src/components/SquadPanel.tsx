@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { annualAmortisation, bookValue, fmtMoney } from '../engine/rules';
+import { annualAmortisation, bookValue } from '../engine/rules';
+import { useMoney } from '../engine/money';
 import * as store from '../engine/store';
 import type { AppState } from '../engine/store';
 import type { Player, Position } from '../engine/types';
@@ -7,6 +8,7 @@ import type { Player, Position } from '../engine/types';
 const POSITIONS: (Position | 'ALL')[] = ['ALL', 'GK', 'DF', 'MF', 'FW'];
 
 function PlayerRow({ p, right }: { p: Player; right: React.ReactNode }) {
+  const money = useMoney();
   return (
     <div className="p">
       <span className="pos">{p.position}</span>
@@ -15,12 +17,12 @@ function PlayerRow({ p, right }: { p: Player; right: React.ReactNode }) {
         {p.homegrown && <span className="tag hg">HG</span>}
         {p.clubTrained && <span className="tag ac">academy</span>}
         <div className="meta">
-          {p.age}y · {fmtMoney(p.weeklyWage)}/wk
-          {annualAmortisation(p) > 0 && ` · amort ${fmtMoney(annualAmortisation(p))}/yr`}
-          {p.clubId && ` · book ${fmtMoney(bookValue(p))}`}
+          {p.age}y · {money.fmt(p.weeklyWage)}/wk
+          {annualAmortisation(p) > 0 && ` · amort ${money.fmt(annualAmortisation(p))}/yr`}
+          {p.clubId && ` · book ${money.fmt(bookValue(p))}`}
         </div>
       </span>
-      <span className="val">{fmtMoney(p.marketValue)}</span>
+      <span className="val">{money.fmt(p.marketValue)}</span>
       {right}
     </div>
   );

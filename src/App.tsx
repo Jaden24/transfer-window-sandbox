@@ -5,6 +5,7 @@ import PlanPanel from './components/PlanPanel';
 import PsrPanel from './components/PsrPanel';
 import SquadPanel from './components/SquadPanel';
 import ToolsPanel from './components/ToolsPanel';
+import { CurrencyContext, USD_PER_GBP, type Currency } from './engine/money';
 import { isWebMcpAvailable, registerTools, type RegistrationResult } from './webmcp/adapter';
 import { TOOLS } from './webmcp/tools';
 
@@ -17,6 +18,18 @@ export default function App() {
     registered: [],
   });
 
+  // Display currency only. The tools and the rules engine always speak pounds.
+  const [currency, setCurrency] = useState<Currency>(() => {
+    try {
+      return localStorage.getItem('twsCurrency') === 'USD' ? 'USD' : 'GBP';
+    } catch {
+      return 'GBP';
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('twsCurrency', currency); } catch { /* private mode */ }
+  }, [currency]);
+
   // Register once, on mount. Tools read live state through the store, so they
   // never need re-registering when the plan changes.
   useEffect(() => {
@@ -27,6 +40,7 @@ export default function App() {
   const club = store.currentClub();
 
   return (
+    <CurrencyContext.Provider value={currency}>
     <div className="app">
       <header className="top">
         <div>
@@ -37,6 +51,17 @@ export default function App() {
         </div>
 
         <div className="spacer" />
+
+        <button
+          onClick={() => setCurrency((c) => (c === 'GBP' ? 'USD' : 'GBP'))}
+          title={
+            currency === 'GBP'
+              ? `Show figures in US dollars (approx. $${USD_PER_GBP} per £1)`
+              : 'Show figures in pounds — the currency the rules are written in'
+          }
+        >
+          {currency === 'GBP' ? '£ → $' : '$ → £'}
+        </button>
 
         <select
           value={state.clubId}
@@ -63,6 +88,10 @@ export default function App() {
         rules modelled here are real and public. Every financial figure attached to a
         club or player is invented for demonstration and is not a reported number.
         Nothing here is financial advice, and no transfer is real.
+        {currency === 'USD' && (
+          <> Dollar figures are converted at an approximate ${USD_PER_GBP}/£1 for
+          readability; PSR is denominated in pounds and the tools always return pounds.</>
+        )}
       </div>
 
       <div className="columns">
@@ -92,6 +121,7 @@ export default function App() {
         </div>
       </div>
     </div>
+    </CurrencyContext.Provider>
   );
 }
 
