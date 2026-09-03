@@ -5,3 +5,7 @@ dist
 
 # build artefacts
 tsconfig.tsbuildinfo
+
+# personal notes, not for the repo
+DEMO.md
+SCRIPT.md
