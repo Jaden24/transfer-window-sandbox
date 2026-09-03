@@ -125,6 +125,28 @@ whichever is present, so there is one file to change when the spec settles.
 
 ---
 
+## Deploying
+
+Static output, so any host works. Configs for two are committed:
+
+```bash
+npm run build            # -> dist/
+netlify deploy --prod    # netlify.toml
+vercel --prod            # vercel.json
+```
+
+**Then enable WebMCP for your visitors.** Without an origin trial token,
+`navigator.modelContext` only exists for people who have manually turned on
+`chrome://flags/#enable-webmcp-testing` — which no reviewer is going to do. Register
+the deployed origin at [developer.chrome.com/origintrials](https://developer.chrome.com/origintrials),
+then paste the token into the commented `<meta http-equiv="origin-trial">` tag in
+[`index.html`](index.html) and redeploy. The header badge turns green when it works.
+
+Tokens are origin-specific — one issued for a Netlify URL will not work on Vercel, or
+on localhost. For local development, use the flag.
+
+---
+
 ## Against the judging criteria
 
 **WebMCP leverage.** 14 tools in a deliberate three-tier taxonomy, with refusal as a

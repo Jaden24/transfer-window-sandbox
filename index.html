@@ -8,6 +8,27 @@
       name="description"
       content="A WebMCP sandbox where an AI agent runs your transfer window, and the page refuses any deal that breaks Premier League PSR or squad-registration rules."
     />
+
+    <!--
+      WebMCP origin trial token.
+
+      Without this, navigator.modelContext only exists for visitors who have
+      manually enabled chrome://flags/#enable-webmcp-testing. With it, WebMCP is
+      live for everyone who opens the deployed site — which is what a reviewer
+      needs, since they will not be flipping browser flags.
+
+      To fill it in:
+        1. Deploy, and note the exact origin (scheme + host + port), e.g.
+           https://transfer-window-sandbox.netlify.app
+        2. Register that origin for the WebMCP trial at
+           https://developer.chrome.com/origintrials
+        3. Paste the token into the content attribute below and uncomment.
+        4. Redeploy. The header badge should turn green on the live URL.
+
+      The token is origin-specific: a token for the Netlify URL will not work on
+      a Vercel one, or on localhost. Locally, use the flag instead.
+    -->
+    <!-- <meta http-equiv="origin-trial" content="PASTE_ORIGIN_TRIAL_TOKEN_HERE" /> -->
   </head>
   <body>
     <div id="root"></div>
