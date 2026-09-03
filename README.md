@@ -8,6 +8,53 @@ Built for [The WebMCP Challenge](https://webmcp.devpost.com/).
 
 ---
 
+## Where WebMCP is used
+
+Tools are registered on mount in [`src/App.tsx`](src/App.tsx), through
+[`src/webmcp/adapter.ts`](src/webmcp/adapter.ts). Each of the 14 is the standard shape:
+
+```js
+document.modelContext.registerTool({
+  name: 'propose_signing',
+  description: 'Add a signing to the transfer plan. The page REFUSES the move if it ' +
+               'would breach PSR or the squad-registration limits, and tells you by ' +
+               'exactly how much.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      player_id:       { type: 'string' },
+      fee_millions:    { type: 'number' },
+      contract_years:  { type: 'number' },
+      weekly_wage_gbp: { type: 'number' },
+    },
+    required: ['player_id'],
+  },
+  execute: async (input) => { /* validates against rules.ts, refuses if illegal */ },
+});
+```
+
+The real call sits behind a small feature detector rather than being hard-coded, because
+the API is an origin trial and is still moving — the W3C proposal exposes
+`navigator.modelContext` while the Chrome guides show `document.modelContext`, and
+registration is either per-tool `registerTool` or a bulk `provideContext`. The adapter
+uses whichever the browser actually provides:
+
+```ts
+// src/webmcp/adapter.ts
+const ctx = navigator.modelContext ?? document.modelContext;
+
+if (typeof ctx.registerTool === 'function') {
+  for (const tool of tools) ctx.registerTool(tool);      // per-tool
+} else if (typeof ctx.provideContext === 'function') {
+  ctx.provideContext({ tools });                          // bulk
+}
+```
+
+One file to change when the spec settles. The 14 tool definitions themselves live in
+[`src/webmcp/tools.ts`](src/webmcp/tools.ts).
+
+---
+
 ## The problem, for people who don't follow football
 
 English football clubs are not allowed to lose money freely. Under the Premier League's
