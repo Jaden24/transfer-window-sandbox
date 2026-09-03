@@ -248,6 +248,27 @@ about the things that matter — and shows you the refusal.
 
 ---
 
+## Does this already exist?
+
+Partly, and it is worth being straight about it.
+
+[Club DNA](https://www.club-dna.com/) is a real platform built around player trading and
+regulatory compliance, with PSR, Squad Cost Controls and UEFA rules in its core logic.
+[PSRwatch](https://psrwatch.com/calculator) publishes a transfer scenario calculator.
+Fokus, Analytics FC's TransferLab and Twenty First Group all do squad planning, though
+they lean recruitment rather than finance. Most clubs, meanwhile, run the numbers in
+heavily-built spreadsheets and internal dashboards.
+
+So the need is real enough that companies exist to serve it.
+
+**What none of them are is agent-operable.** They are dashboards a human drives. This
+project is not trying to out-model Club DNA — it is answering a different question: how
+do you let an AI agent work in a domain like this *without* giving it the ability to be
+wrong about the numbers? The answer here is that the page keeps the rulebook and the
+agent has to ask.
+
+---
+
 ## Future work
 
 **Roles as tool tiers.** The gate currently means *any* human. In a real club it would
