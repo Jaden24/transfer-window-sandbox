@@ -11,17 +11,17 @@ Built for [The WebMCP Challenge](https://webmcp.devpost.com/).
 ## The problem, for people who don't follow football
 
 English football clubs are not allowed to lose money freely. Under the Premier League's
-**Profitability and Sustainability Rules**, a club may lose at most **£105m across three
+**Profitability and Sustainability Rules**, a club may lose at most **£105m (about $133m) across three
 seasons**. Break it and you don't get a fine — you lose league points.
 
 This is not hypothetical:
 
 - **Everton** were docked **10 points** (reduced to 6 on appeal) for exceeding the limit
-  by £16.6m, then [docked 2 more the same season for a second breach](https://www.skysports.com/football/news/11671/13107642/everton-deducted-two-points-for-breaching-premier-league-profitability-and-sustainability-rules-for-second-time).
-- **Nottingham Forest** lost [**4 points** for going £34.5m over their threshold](https://www.espn.com/soccer/story/_/id/39758929/nottingham-forest-deducted-four-points-financial-rules-breach).
+  by £16.6m (~$21m), then [docked 2 more the same season for a second breach](https://www.skysports.com/football/news/11671/13107642/everton-deducted-two-points-for-breaching-premier-league-profitability-and-sustainability-rules-for-second-time).
+- **Nottingham Forest** lost [**4 points** for going £34.5m (~$44m) over their threshold](https://www.espn.com/soccer/story/_/id/39758929/nottingham-forest-deducted-four-points-financial-rules-breach).
 
 Points decide relegation, and relegation is estimated to cost a club around
-[**£100m**](https://sports.yahoo.com/articles/much-does-relegation-cost-premier-170002060.html).
+[**£100m — roughly $127m**](https://sports.yahoo.com/articles/much-does-relegation-cost-premier-170002060.html).
 So the arithmetic behind a transfer is worth roughly as much as the transfer.
 
 ### And the arithmetic is genuinely counterintuitive
@@ -31,7 +31,8 @@ contract — capped at five years since the Premier League
 [voted the limit in](https://www.espn.com/soccer/story/_/id/39096988/premier-league-clubs-vote-five-year-player-contract-limit)
 to stop clubs signing players to eight-year deals to shrink the annual charge.
 
-> A £110m signing on a five-year contract is a **£22m** cost this season, not £110m.
+> A £110m ($140m) signing on a five-year contract is a **£22m ($28m)** cost this
+> season — not £110m.
 
 **A sale, by contrast, books its profit immediately** — the fee minus whatever the
 player is still worth on the books. A player who came through your own academy has a
@@ -40,8 +41,8 @@ own young players every June.
 
 ### The scale
 
-Premier League clubs spent a record [**£3.48bn** in the 2026 summer window](https://cryptobriefing.com/premier-league-2026-summer-transfer-window-records/),
-recouping £2.17bn in sales. All of it under a £105m loss ceiling, all of it racing a
+Premier League clubs spent a record [**£3.48bn — about $4.4bn** in the 2026 summer window](https://cryptobriefing.com/premier-league-2026-summer-transfer-window-records/),
+recouping £2.17bn ($2.8bn) in sales. All of it under a £105m loss ceiling, all of it racing a
 **30 June accounting deadline** that [Sky Sports calls football's unofficial transfer
 deadline day](https://www.skysports.com/football/news/11095/13144913/june-30-the-unofficial-transfer-deadline-day-worrying-premier-league-clubs-over-profit-and-sustainability-rules) —
 and increasingly settled by **chief financial officers** rather than scouts, through
@@ -49,11 +50,14 @@ two-way "mirror" deals engineered to book profit now and spread cost later.
 
 That is the job this sandbox hands to an AI agent.
 
+*Dollar figures throughout are approximate, converted at about $1.27 to the pound. The
+app itself has a **£ → $** toggle in the header if you would rather read it that way.*
+
 ---
 
 ## What happens when you try
 
-Ask the agent to sign a £110m striker with £20.3m of headroom. It does not apologise
+Ask the agent to sign a £110m ($140m) striker with £20.3m ($26m) of headroom. It does not apologise
 and comply. **The page refuses**, and hands back the arithmetic:
 
 ```json
