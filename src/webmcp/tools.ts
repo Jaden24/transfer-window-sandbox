@@ -540,11 +540,12 @@ const submitWindow: WebMcpTool = {
   name: 'submit_window',
   description:
     'Ask for the transfer window to be submitted. This does NOT submit it. If the ' +
-    'plan is legal, the page raises a confirmation the manager must press ' +
-    'themselves; if it is not legal, the page refuses outright. You can never ' +
-    'complete this action on the manager’s behalf.',
+    'plan is illegal the page refuses outright. If it is legal, the page raises a ' +
+    'confirmation in the UI and THIS CALL BLOCKS until a human presses a button — ' +
+    'expect to wait. It resolves only when the manager confirms or declines. You ' +
+    'can never complete this action on the manager’s behalf.',
   inputSchema: { type: 'object', properties: {} },
-  execute: () => {
+  execute: async () => {
     const report = store.compliance();
     if (!report.legal) {
       const hard = report.violations.filter((v) => v.severity === 'hard');
@@ -556,15 +557,29 @@ const submitWindow: WebMcpTool = {
     if (store.getState().plan.length === 0) {
       return refuse('There is nothing in the plan to submit.');
     }
-    store.requestSubmission();
     store.log('agent', 'requested submission — waiting on the manager');
-    return ok({
-      submitted: false,
-      awaiting_human_confirmation: true,
-      message:
-        'Plan is compliant. A confirmation has been raised in the page — the manager ' +
-        'must press "Confirm & submit" themselves. Report this and stop; do not retry.',
-      ...complianceSummary(report),
+
+    // Suspend here. The agent stays inside this tool call, blocked, until a
+    // human presses a button in the page. Nothing it can do will resolve this.
+    const outcome = await store.requestSubmissionAndWait();
+
+    if (outcome === 'confirmed') {
+      return ok({
+        submitted: true,
+        confirmed_by: 'human',
+        message: 'The manager pressed "Confirm & submit". The window is registered.',
+        ...complianceSummary(store.compliance()),
+      });
+    }
+
+    if (outcome === 'timed_out') {
+      return refuse('The confirmation went unanswered and the request expired.', {
+        hint: 'Ask the manager whether they still want this window submitted, then try again.',
+      });
+    }
+
+    return refuse('The manager declined to submit the window.', {
+      hint: 'The plan is untouched and still reversible. Ask what they would like changed.',
     });
   },
 };

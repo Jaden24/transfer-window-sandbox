@@ -140,23 +140,59 @@ export function newMoveId(): string {
 
 // --- the human gate --------------------------------------------------------
 
-/**
- * The agent can ask for the window to be submitted. It cannot submit it.
- * This flips a flag; only `confirmSubmission` — wired to a button the human
- * has to press — actually completes it.
- */
+export type SubmissionOutcome = 'confirmed' | 'declined' | 'timed_out';
+
+/** Resolver for an agent currently suspended inside `submit_window`. */
+let pendingGate: ((outcome: SubmissionOutcome) => void) | null = null;
+let gateTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** How long an agent may sit blocked before we let it go. */
+const GATE_TIMEOUT_MS = 5 * 60 * 1000;
+
+function settleGate(outcome: SubmissionOutcome) {
+  if (gateTimer) { clearTimeout(gateTimer); gateTimer = null; }
+  const resolve = pendingGate;
+  pendingGate = null;
+  resolve?.(outcome);
+}
+
+/** The human pressing "Submit window" in the UI. Raises the gate, waits for nobody. */
 export function requestSubmission() {
   set({ awaitingConfirmation: true });
+}
+
+/**
+ * The agent asking to submit.
+ *
+ * This deliberately does NOT resolve when called. It raises the confirmation in
+ * the page and then suspends — the agent is genuinely blocked, mid-tool-call,
+ * until a human presses a button. That is the Chrome-documented human-in-the-loop
+ * pattern: the tool pauses execution and waits for user interaction before
+ * completing a consequential action.
+ */
+export function requestSubmissionAndWait(): Promise<SubmissionOutcome> {
+  settleGate('declined'); // supersede any earlier pending request
+  set({ awaitingConfirmation: true });
+  return new Promise<SubmissionOutcome>((resolve) => {
+    pendingGate = resolve;
+    gateTimer = setTimeout(() => {
+      set({ awaitingConfirmation: false });
+      log('human', 'left the confirmation unanswered — the request expired');
+      settleGate('timed_out');
+    }, GATE_TIMEOUT_MS);
+  });
 }
 
 export function confirmSubmission() {
   set({ awaitingConfirmation: false, submitted: true });
   log('human', 'confirmed and submitted the transfer window');
+  settleGate('confirmed');
 }
 
 export function cancelSubmission() {
   set({ awaitingConfirmation: false });
   log('human', 'declined to submit the window');
+  settleGate('declined');
 }
 
 export function resetAll() {

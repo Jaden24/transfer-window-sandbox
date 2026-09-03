@@ -78,9 +78,13 @@ well-behaved; it is structurally unable to proceed. That is a property of puttin
 guard where the state lives.
 
 **3. The consequential action has no agent-reachable path.** `submit_window` is the
-only tool that touches anything final, and all it can do is *raise a confirmation*.
-Completing it requires a click on a button rendered by this page. An agent operating
-over a REST API could always call `POST /submit`; here there is nothing to call.
+only tool that touches anything final, and it does not return when called — it raises
+a confirmation in the UI and then **suspends**. The agent sits blocked inside the tool
+call until a human presses a button; the promise resolves only on confirm, decline, or
+a five-minute timeout, and reports which. This is Chrome's documented human-in-the-loop
+pattern: a tool pauses execution and waits for user interaction before completing a
+consequential action. An agent operating over a REST API could always call
+`POST /submit`; here there is nothing to call, and waiting is the only option.
 
 ---
 
